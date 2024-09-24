@@ -37,7 +37,8 @@ conda env create -f environment.yml
 ## Usage
 
 ### 1. Load the data and the models
-To begin, load the datasets, the classification heads and the models you want to merge. The fine-tuned ViT-B-16 models referenced in our paper can be found here (link coming soon).
+To begin, load the datasets, the classification heads and the models you want to merge. Update the `data_location` variable in the code with the relevant path.
+The fine-tuned ViT-B-16 models referenced in our paper can be found here (link coming soon).
 Alternatively, you can fine-tune your own models using the provided [src/finetune.py](src/finetune.py) script, which is based on [task vectors](https://github.com/mlfoundations/task_vectors) [[*]](#ref1) work.
 You need to organize your files with a parent directory containing both the classification heads and the models. Inside this parent directory, create a folder named `heads` for storing the classification heads and another folder named `checkpoints` for storing the models.
 
