@@ -190,7 +190,7 @@ if __name__ == '__main__':
 
     ######## Experiment parameters ########
     set_seed(seed=42)
-    exp_name = '9_3_24_diff_pretrained_finetuned'
+    exp_name = 'exp'
     data_location = '../data'
     #models = ['ViT-B-32', 'ViT-B-16', 'ViT-L-14']
     model_type = 'ViT-L-14'
