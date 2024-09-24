@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/d5c3a299-37cb-4fd6-9045-a89e7d04a209)<h1 align="center"> Foldable SuperNets: Scalable Merging of Transformers with Different Initializations and Tasks </h1> 
+<h1 align="center"> Foldable SuperNets: Scalable Merging of Transformers with Different Initializations and Tasks </h1> 
 
 <p align="center">
     <a href="https://www.linkedin.com/in/edan-kinderman-1320611b8/"> Edan Kinderman </a> •
