@@ -7,6 +7,8 @@
     <a href="https://soudry.github.io/"> Daniel Soudry </a>
 </p>
 
+Official implementation for [Foldable SuperNets: Scalable Merging of Transformers with Different Initializations and Tasks](?).
+
 <p align="center">
 <img src="figures/setting_overview.png" alt="scatter" width="90%"/>
 </p>
@@ -31,13 +33,12 @@ Then create the conda environment using the yml file:
 ```bash
 conda env create -f environment.yml
 ```
-TODO
 
 ## Usage
 
 ### 1. Load the data and the models
 To begin, load the datasets, the classification heads and the models you want to merge. The fine-tuned ViT-B-16 models referenced in our paper can be found here (link coming soon).
-Alternatively, you can fine-tune your own models using the provided [src/finetune.py](src/finetune.py) script, which is based on [task vectors](https://github.com/mlfoundations/task_vectors) [[1]](#ref1) work.
+Alternatively, you can fine-tune your own models using the provided [src/finetune.py](src/finetune.py) script, which is based on [task vectors](https://github.com/mlfoundations/task_vectors) [[*]](#ref1) work.
 You need to organize your files with a parent directory containing both the classification heads and the models. Inside this parent directory, create a folder named `heads` for storing the classification heads and another folder named `checkpoints` for storing the models.
 
 ### 2. Extract layers
@@ -99,4 +100,4 @@ If you use FS-Merge or this codebase in your work, please cite: TODO
 ```
 
 ## References and credits
-* <a id="ref1">[[1]](https://arxiv.org/abs/2212.04089)</a> "Editing Models with Task Arithmetic", Ilharco, Gabriel and Ribeiro, Marco Tulio and Wortsman, Mitchell and Gururangan, Suchin and Schmidt, Ludwig and Hajishirzi, Hannaneh and Farhadi, Ali. The International Conference on Learning Representations, 2023.
+* <a id="ref1">[[*]](https://arxiv.org/abs/2212.04089)</a> "Editing Models with Task Arithmetic", Ilharco, Gabriel and Ribeiro, Marco Tulio and Wortsman, Mitchell and Gururangan, Suchin and Schmidt, Ludwig and Hajishirzi, Hannaneh and Farhadi, Ali. The International Conference on Learning Representations, 2023.
