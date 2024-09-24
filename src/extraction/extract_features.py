@@ -20,6 +20,13 @@ from modeling import ImageClassifier, ModuleWrapper
 from heads import get_classification_head
 from merges.average_merge import AverageMerge
 
+class Config:
+    def __init__(self, model, dir_path, data_location='../data'):
+        self.data_location = data_location
+        self.model = model
+        self.save = dir_path
+        self.save_dir = dir_path
+        self.devices = list(range(torch.cuda.device_count()))
 
 def save_tensor_as_image(tensor, path):
     """
@@ -47,21 +54,10 @@ def save_tensor_as_image(tensor, path):
     plt.close()  # Close the plot to free up memory
 
 
-# Example usage
-# Create a sample tensor representing an image (for example, a 2D grayscale image of size 256x256)
-sample_tensor = torch.rand(256, 256)  # Change this to your actual tensor
-
-# Specify the path where you want to save the image
-save_path = 'your_image_path_here.png'  # Change this to your desired path
-
-# Save the tensor as an image
-save_tensor_as_image(sample_tensor, save_path)
-
 
 # Load a specific model
 def load_model(dir_path, model_name):
-    model_full_name = "{}.pt".format(model_name)
-    file_path = os.path.join(dir_path, 'checkpoints', model_full_name)
+    file_path = os.path.join(dir_path, 'checkpoints', f"finetuned_{model_name}.pt")
     model = torch.load(file_path)
     return model
 
@@ -90,8 +86,7 @@ class FeatureExtractorVit:
         self.with_mixup = with_mixup
 
         self.model_path = os.path.join(self.dir_path, 'checkpoints')
-        self.args = parse_arguments()
-        self.args.data_location = '../data'
+        self.data_location = '../../task-vectors/data'
 
         self.features_dir = os.path.join(self.dir_path, "features_{}".format(num_features_per_dataset))
         Path(self.features_dir).mkdir(parents=True, exist_ok=True)
@@ -100,6 +95,11 @@ class FeatureExtractorVit:
 
 
     def load_models_args(self):
+        args = Config(model=self.model_type,
+                      dir_path=self.dir_path,
+                      data_location='../../task-vectors/data')
+
+        """
         # Load the arguments from the file
         args = parse_arguments()
         args.data_location = '../data'
@@ -107,6 +107,7 @@ class FeatureExtractorVit:
         args.save = self.dir_path
         args.save_dir = self.dir_path
         args.devices = list(range(torch.cuda.device_count()))
+        """
         return args
 
     def get_loader(self, dataset, data_type, shuffle=False):
@@ -162,7 +163,7 @@ class FeatureExtractorVit:
                 dataset = get_dataset(
                     data_name_for_features,
                     preprocess=self.preprocess,
-                    location=self.args.data_location,
+                    location=self.data_location,
                     batch_size=128,
                 )
 
@@ -301,7 +302,8 @@ class FeatureExtractorVit:
                 inputs = batch['images'].to('cuda:0')
                 extract_type_curr = 'none' if data_type == 'augmented_train' and samples_so_far >= 250 else extract_type
                 classification_head = get_classification_head(self.loaded_args, dataset_name, image_encoder=None, head_path=self.head_path)
-                features_dict = extract_vit_features_from_inputs(model, inputs, extract_type=extract_type_curr, classification_head=classification_head)
+                features_dict = extract_vit_features_from_inputs(model, inputs, extract_type=extract_type_curr,
+                                                                 classification_head=classification_head)
 
                 # Saving the features in a tmp directory inside features_dir_tmp1, from each layer in different file
                 for layer_name in features_dict.keys():
@@ -363,21 +365,14 @@ class FeatureExtractorVit:
         squared_diff = (x - y) ** 2
         return squared_diff.mean()
 
-def feature_extraction(model_type, aug_factor, with_mixup, extract_type, num_features_per_dataset, datasets_for_features):
+def feature_extraction(model_type, path_to_models, aug_factor, with_mixup, extract_type, num_features_per_dataset,
+                       datasets_for_features):
+
     print(f"\nExtracting features from {model_type} with aug_factor {aug_factor} and with_mixup {with_mixup}"
           f" and extract_type {extract_type}\n\n")
 
-    if model_type == 'ViT-B-16':
-        exp_name = '4_1_24_diff_pretrained_finetune'
-
-    elif model_type == 'ViT-L-14':
-        exp_name = '9_3_24_diff_pretrained_finetuned'
-
-    dir_path = os.path.join('..', 'experiments', model_type, exp_name)
-    model_names = ["finetuned_{}".format(data_name) for data_name in datasets_for_features]
-
     #########################################################
-    image_encoder = load_model(dir_path, model_names[0])
+    image_encoder = load_model(path_to_models, datasets_for_features[0])
 
     # print("image_encoder.val_preprocess: ", image_encoder.val_preprocess, "\n")
     # print("image_encoder.train_preprocess: ", image_encoder.train_preprocess, "\n")
@@ -388,7 +383,7 @@ def feature_extraction(model_type, aug_factor, with_mixup, extract_type, num_fea
           "=" * 20, "\n")
 
     feature_extractor = FeatureExtractorVit(model_type=model_type,
-                                            dir_path=dir_path,
+                                            dir_path=path_to_models,
                                             train_preprocess=image_encoder.train_preprocess,
                                             val_preprocess=image_encoder.val_preprocess,
                                             num_features_per_dataset=num_features_per_dataset,
@@ -417,7 +412,7 @@ def feature_extraction(model_type, aug_factor, with_mixup, extract_type, num_fea
             curr_features_dir=features_dir_curr_dataset)
 
         # Extract features for the models
-        for model_name in model_names:
+        for model_name in datasets_for_features:
             if data_name_for_features != model_name.replace('finetuned_', ''):
                 continue
 
@@ -447,7 +442,7 @@ def feature_extraction(model_type, aug_factor, with_mixup, extract_type, num_fea
 
         features_desc = "date: {} \nnumber of features per model: {}\nmodel type: {}\nmodel names: {} " \
                         "features created from {} \naug_factor {}, with_mixup: {}" \
-            .format(curr_time, num_features_per_dataset, model_type, model_names, datasets_for_features,
+            .format(curr_time, num_features_per_dataset, model_type, datasets_for_features, datasets_for_features,
                     aug_factor, with_mixup)
         desc_dir = os.path.join(feature_extractor.features_dir, 'features_desc.txt')
         with open(desc_dir, 'a+') as f:

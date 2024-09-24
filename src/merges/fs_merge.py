@@ -89,7 +89,7 @@ class FSMerge(GeneralMerge):
                  rank: int = -1,
                  loss_degree: int = 2,
                  loss_weights: List[float] | None = None,
-                 loss_type: str = 'rec',
+                 loss_type: str = 'rec_with_ids',
                  loss_layer_num: List[int] | None = None,
                  scale_inner_type : str = 'l1',
                  reg_coeff: float = 0.0,

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="edank@132.69.32.81:22 password (8)" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="edank@132.68.139.177:22 password">
         <serverdata>
@@ -219,6 +219,14 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="edank@132.69.32.81:22 password (8)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/edank/fs-mrge" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

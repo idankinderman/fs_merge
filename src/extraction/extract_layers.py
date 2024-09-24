@@ -27,6 +27,11 @@ class LayersExtractorVit:
             self.models_path = os.path.join(self.dir_path, 'checkpoints')
 
         self.layers_dir = self.dir_path
+
+        if not os.path.exists(self.dir_path):
+            print(f"The path {self.dir_path} does not exist.")
+            return
+
         Path(self.layers_dir).mkdir(parents=True, exist_ok=True)
 
 
@@ -35,8 +40,7 @@ class LayersExtractorVit:
         if model_name == 'zero_shot':
             return self.load_zero_shot_model()
 
-        model_full_name = "{}.pt".format(model_name)
-        file_path = os.path.join(self.models_path, model_full_name)
+        file_path = os.path.join(self.models_path, model_name)
         model = torch.load(file_path)
         return model
 
@@ -56,12 +60,14 @@ class LayersExtractorVit:
         pickle.dump(parameters, open(layer_path, 'wb'))
 
 
-    def extract_layers(self, model_name):
-        model = self.load_model(model_name)
+    def extract_layers(self):
+        for model_name in os.listdir(self.models_path):
+            print("Extracting layers from models {}".format(model_name))
+            model = self.load_model(model_name)
 
-        # Layers before and after the transformer
-        self.extract_vit_special_blocks(model.model.visual, model_name)
-        self.extract_transformer(model.model.visual.transformer, model_name)
+            # Layers before and after the transformer
+            self.extract_vit_special_blocks(model.model.visual, model_name)
+            self.extract_transformer(model.model.visual.transformer, model_name)
 
     def extract_vit_special_blocks(self, visual, model_name):
         # Layers before the transformer
@@ -150,28 +156,16 @@ class LayersExtractorVit:
             self.save_layer(parameters, model_name=model_name, layer_name="fc_2_bias", layer_num=layer_num)
 
 
-def extract_layers_from_model(model_type):
+def extract_layers_from_model(model_type, path_to_models):
     """
     This used in order to extract layers from a number of VITs.
     The 'model_names' determine the models from which the features will be extracted.
+    The 'path_to_models' is the path to the directory where the models are saved.
     The layers are saved in the 'layers' directory, inside the 'dir_path' directory.
     """
-
-    if model_type == 'ViT-B-16':
-        exp_name = '4_1_24_diff_pretrained_finetune'
-    elif model_type == 'ViT-L-14':
-        exp_name = '9_3_24_diff_pretrained_finetuned'
-
-
     if model_type in ['ViT-B-16', 'ViT-L-14']:
-        dir_path = os.path.join('..', 'experiments', model_type, exp_name)
-        model_names = ['finetuned_Cars']
-
-        layers_extractor = LayersExtractorVit(dir_path)
-
-        for model_name in tqdm.tqdm(model_names, desc='Extracting layers'):
-            print("\nExtracting layers from dataset {}".format(model_name))
-            layers_extractor.extract_layers(model_name=model_name)
+        layers_extractor = LayersExtractorVit(path_to_models)
+        layers_extractor.extract_layers()
 
 if __name__ == '__main__':
     extract_layers_from_model(model_type='ViT-B-16')

@@ -17,8 +17,6 @@ from extraction.extract_layers import LayersExtractorVit
 
 from train_eval.eval import evaluate, eval_single_dataset, multi_head_evaluate
 from train_eval.eval_text_task import evaluate_text_datasets
-from train_eval.eval_COCO import eval_clip_on_coco
-from train_eval.classification_head_trainer import train_classification_head
 
 from args import parse_arguments
 from vision_datasets.features_dataset import FeaturesDatasetHolder, ImagesDataset, DatasetFeaturesVIT,\
@@ -279,7 +277,7 @@ class GeneralMerge(metaclass=ABCMeta):
                 args.__dict__ = json.load(f)
         else:
             args = parse_arguments()
-            args.data_location = '../data'
+            args.data_location = '../../task-vectors/data'
             args.model = self.params['model_type']
             #args.exp_name =
             args.save = self.params['path_for_models']

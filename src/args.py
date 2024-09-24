@@ -10,7 +10,7 @@ def parse_arguments():
     parser.add_argument(
         "--data-location",
         type=str,
-        default=os.path.expanduser('~/data'),
+        default=os.path.expanduser('../../task-vectors/data'),
         help="The root directory for the vision_datasets.",
     )
     parser.add_argument(
