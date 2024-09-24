@@ -209,7 +209,6 @@ def multi_head_evaluate(image_encoder, args, U_output=None, head_path=None, head
         )
 
         head_place = model.module.get_head_place(dataset_num) # Before the right head we have #head_place entries
-        print(f"edan debug: evaluating on dataset {dataset_name}, head_place = {head_place}")
 
         for data_type in data_type_list:
             dataloader = get_dataloader(dataset, data_type)
