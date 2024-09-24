@@ -599,7 +599,8 @@ class FSMerge(GeneralMerge):
         return Trainer(args=self.args_for_MU_training, loss_fn=self.loss_func, epoch_per_eval = 180,
                     clip_grad_norm=self.params['clip_grad_norm'], out_dim=self.params['out_dim'],
                     print_per_epoch=self.params['print_per_epoch'], with_eval=True, eval_type='loss_test',
-                    loss_type=self.params['loss_type'], with_early_stopping=self.params['with_early_stopping'])
+                    loss_type=self.params['loss_type'], with_early_stopping=self.params['with_early_stopping'],
+                    what_is_trained=what_is_trained, models_to_merge=self.params['models_to_merge'],)
 
 
     # Helper function to update or initialize a list within the losses_lists dictionary

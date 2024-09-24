@@ -116,7 +116,6 @@ class DatasetFeaturesVIT(Dataset):
 
     def print_info(self):
         print("inputs.shape: {} | targets.shape: {} | ids.shape: {}".format(self.inputs.shape, self.targets.shape, self.ids.shape))
-        print("scales is: {}".format(self.scales))
         print()
 
     def normalize_target_scale(self, targets_list, normalize_scale):
@@ -184,7 +183,6 @@ class DatasetFeaturesBERT(DatasetFeaturesVIT):
     def print_info(self):
         print("inputs.shape: {} | targets.shape: {} | ids.shape: {} | attention_mask.shape: {} | token_type_ids.shape: {}"
               .format(self.inputs.shape, self.targets.shape, self.ids.shape, self.attention_mask.shape, self.token_type_ids.shape))
-        print("scales is: {}".format(self.scales))
         print()
 
     def __getitem__(self, idx):
@@ -252,8 +250,6 @@ class DatasetInnerFeaturesVIT(DatasetFeaturesVIT):
         self.num_samples = inputs.shape[0]
 
         print("inputs.shape: {} | targets.shape: {} | ids.shape: {}".format(self.inputs.shape, self.targets.shape, self.ids.shape))
-        print("At the end, scales is {}".format(self.scales))
-        print("At the end, inner_target_scales is {}".format(self.inner_target_scales))
         print()
 
 

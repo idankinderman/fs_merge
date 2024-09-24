@@ -394,8 +394,6 @@ class Trainer():
                 return model
 
         # Training loop
-        start_mem = torch.cuda.memory_allocated()
-        print("Start of training, memory: ", (start_mem)/ 1024 ** 2)
         for epoch in range(epochs):
             model.train()
             self.lr_list.append(optimizer.param_groups[0]['lr'])

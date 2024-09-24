@@ -188,6 +188,7 @@ class GeneralMerge(metaclass=ABCMeta):
         if dataset_path is None:
             return None
 
+        dataset_path = dataset_path.replace("finetuned_", "", 1)
         with open(dataset_path, 'rb') as f:
             dataset = pickle.load(f)
 
@@ -326,7 +327,7 @@ class GeneralMerge(metaclass=ABCMeta):
                 if model_name == 'prev_merged_model': # Load the layer from the previous merged model
                     layer_path = os.path.join(self.params['path_to_save'], 'layers', 'merged_model', layer_name)
                 else:
-                    layer_path = os.path.join(self.params['path_for_layers'], model_name, layer_name)
+                    layer_path = os.path.join(self.params['path_for_layers'], model_name + '.pt', layer_name)
 
                 if layer_num is not None:
                     layer_path = layer_path + '_' + str(layer_num)

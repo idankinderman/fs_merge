@@ -79,7 +79,7 @@ if __name__ == '__main__':
                               slerp_type='regular')
 
     slerp_merger.merge(with_eval=True, with_save=False, with_multi_head_eval=True)
-
+    
     ###############################################################################################
     # regMean merge
     regmean_merge = RegMeanMerge(
@@ -96,7 +96,7 @@ if __name__ == '__main__':
         init='average')
 
     regmean_merge.merge(with_eval=True, with_save=False, with_multi_head_eval=True)
-
+    
     ###############################################################################################
     # Distillation merge
     distillation_merge = DistillationMerge(
@@ -106,11 +106,11 @@ if __name__ == '__main__':
         path_for_models=path_for_models,
         models_to_merge=models_to_merge,
         datasets_to_eval=datasets_to_eval,
-        num_features_train=10,
+        num_features_train=100,
         num_features_test=num_features_test,
-        num_features_aug_train=10,
+        num_features_aug_train=100,
         descriptor=descriptor.format('distillation'),
-        epochs=2,
+        epochs=100,
         batch_size=batch_size,
         lr=0.0001,
         wd=wd,
@@ -128,11 +128,11 @@ if __name__ == '__main__':
         path_for_models=path_for_models,
         models_to_merge=models_to_merge,
         datasets_to_eval=datasets_to_eval,
-        num_features_train=10,
+        num_features_train=100,
         num_features_test=num_features_test,
-        num_features_aug_train=10,
+        num_features_aug_train=100,
         descriptor=descriptor.format('fs_merge_low_rank'),
-        epochs=2,
+        epochs=100,
         batch_size=batch_size,
         lr=0.0001,
         wd=wd,
