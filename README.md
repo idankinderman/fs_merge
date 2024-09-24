@@ -91,7 +91,7 @@ fs_merge = FSMerge(
         MU_type='diagonal_and_low_rank',
         rank=12)
 
-    fs_merge.merge(with_eval=True, with_save=False, with_multi_head_eval=True)
+fs_merge.merge(with_eval=True, with_save=False, with_multi_head_eval=True)
 ```
 
 ## Citation
