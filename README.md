@@ -18,13 +18,18 @@ Many recent methods aim to merge neural networks (NNs) with identical architectu
 <img src="figures/local_global_fs_merge.png" alt="scatter" width="90%"/>
 </p>
 
-### Section 1.1 Installation
-Create a virtual environment and install the dependencies:
+## Installation
+Start by cloning this repository:
+
 ```bash
-conda create -n zipit python=3.7
-conda activate zipit
-pip install torch torchvision torchaudio
-pip install -r requirements.txt
+git clone https://github.com/idankinderman/fs_merge.git
+cd fs_merge
+```
+
+Then create the conda environment using the yml file:
+
+```bash
+conda env create -f environment.yml
 ```
 TODO
 
@@ -37,6 +42,7 @@ You need to organize your files with a parent directory containing both the clas
 
 ### 2. Extract layers
 Run the following command to extract and save the layers of the models you plan to merge.
+
 ```bash
 python extract.py --extract_type layers --model_type ViT-B-16 --path_to_models <PATH>
 ```
@@ -47,6 +53,7 @@ Use this command to extract and save the features from the models. These feature
 To extract inner features required for methods like RegMean, `set extract_type = 'all'`.
 The parameter `num_features_per_dataset` defines the number of images to be taken from each training dataset.
 The `aug_factor` multiplies this number by applying data augmentations, effectively increasing the number of images used.
+
 ```bash
 python extract.py --extract_type none --model_type ViT-B-16 --path_to_models <PATH> --num_features_per_dataset <NUM> --aug_factor <AUG> --datasets_for_features <DATA1> <DATA2>
 ```
@@ -54,8 +61,35 @@ python extract.py --extract_type none --model_type ViT-B-16 --path_to_models <PA
 ### 4. Merge
 Here is an example of merging a pair of models using FS-Merge with a low rank of `12`, `100` training images per dataset, and `800` augmented images per dataset. 
 To use FS-Merge seq., set `learn_tasks_sequentially=True`. If you want to calculate the joint accuracy of the merged model, set `with_multi_head_eval=True`. To save the merged model, set `with_save=True`.
+Examples of how to use other merge methods can be found in the [src/main.py](src/main.py) file.
+
 ```python
-pass
+from merges.fs_merge import FSMerge
+
+datasets_to_eval = ['Cars', 'CIFAR10']
+models_to_merge = [f"finetuned_{data}" for data in datasets_to_eval]
+
+fs_merge = FSMerge(
+        model_type='ViT-B-16',
+        experiment_name='FS_Merge_rank_12',
+        experiment_dir='results',
+        path_for_models=<PATH>,
+        models_to_merge=models_to_merge,
+        datasets_to_eval=datasets_to_eval,
+        num_features_train=100,
+        num_features_test=64,
+        num_features_aug_train=100,
+        descriptor="Using FS-Merge to merge models",
+        epochs=100,
+        batch_size=128,
+        lr=0.0001,
+        wd=0.001,
+        scheduler_type='warmup',
+        MU_init_method='first',
+        MU_type='diagonal_and_low_rank',
+        rank=12)
+
+    fs_merge.merge(with_eval=True, with_save=False, with_multi_head_eval=True)
 ```
 
 ## Citation
