@@ -61,12 +61,10 @@ def get_classification_head(args, dataset, image_encoder, head_path=None, head_n
     else:
         filename = os.path.join(args.save_dir, 'heads', f'head_{dataset}.pt')
     if os.path.exists(filename):
-        print(f'Classification head for {args.model} on {dataset} exists at {filename}')
         return ClassificationHead.load(filename)
 
     if head_path is not None and os.path.exists(head_path):
         full_head_path = os.path.join(head_path, f'head_{dataset}.pt')
-        print(f'Classification head for {args.model} on {dataset} exists at head_path={full_head_path}')
         return ClassificationHead.load(full_head_path)
 
     print(f'Did not find classification head for {args.model} on {dataset} at {filename}, building one from scratch.')

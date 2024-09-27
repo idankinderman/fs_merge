@@ -68,7 +68,7 @@ class DistillationMerge(GeneralMerge):
                  lr: float,
                  wd: float,
                  num_features_train: int,
-                 num_features_test: int = 64,
+                 num_features_test: int = 300,
                  num_features_aug_train : int = 0,
                  transformer_type: str = None,
                  pre_trained: str = None,
@@ -76,7 +76,6 @@ class DistillationMerge(GeneralMerge):
                  distributed: str | None = 'data_parallel',
                  clip_grad_norm: bool = False,
                  with_early_stopping: bool = False,
-                 print_per_epoch: int = 1,
                  datasets_to_eval: List[str] | None = None,
                  models_indexes: List[int] | None = None,
                  separate_datasets: bool = True,
@@ -133,7 +132,6 @@ class DistillationMerge(GeneralMerge):
         self.params['scale_inner_type'] = 'ones'  # The type of the scale for the inner features
 
         # General
-        self.params['print_per_epoch'] = print_per_epoch
         self.params['init'] = init.lower()
         self.params['merge_type'] = 'distillation'
 
@@ -170,10 +168,6 @@ class DistillationMerge(GeneralMerge):
         self.args_for_MU_training.devices = list(range(torch.cuda.device_count()))
 
         self.losses_lists = {}
-
-        # Here the training plots will be saved
-        self.params['plots_path'] = os.path.join(self.params['path_to_save'], 'plots')
-        Path(self.params['plots_path']).mkdir(parents=True, exist_ok=True)
 
         # Create the loss function
         self.loss_func = create_loss_function_for_dist(loss_type=self.params['loss_type'],
@@ -313,8 +307,8 @@ class DistillationMerge(GeneralMerge):
         what_is_trained = 'bert_distillation' if self.params['model_type'] == 'bert' else 'VIT_distillation'
         trainer = Trainer(args=self.args_for_MU_training, loss_fn=self.loss_func,
                               clip_grad_norm=self.params['clip_grad_norm'], loss_type=self.params['loss_type'],
-                              print_per_epoch=self.params['print_per_epoch'], with_eval=True, eval_type='loss_test',
-                              what_is_trained=what_is_trained, models_to_merge=self.params['models_to_merge'],
+                              with_eval=True, eval_type='loss_test', what_is_trained=what_is_trained,
+                              models_to_merge=self.params['models_to_merge'],
                               with_early_stopping=self.params['with_early_stopping'],)
 
         merged_model = trainer.train_model(model=merged_model,
@@ -330,7 +324,6 @@ class DistillationMerge(GeneralMerge):
 
         # Saving the training statistics and create plots
         self.save_trainer_statistics(trainer)
-        self.training_plots()
 
         U_output = None if self.params['normalize_scale'] == 0 else self.create_U_output(scales=dataset.scales)
         return U_output

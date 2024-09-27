@@ -147,14 +147,13 @@ class FeatureExtractorVit:
                 with open(path_labels, "rb") as f:
                     all_labels = pickle.load(f)
 
-                print(f"Used existing dataset {data_name_for_features} {data_type} dataset."
-                      f" inputs shape: {all_inputs.shape} | labels shape: {all_labels.shape}")
+                print(f"Used existing dataset {data_name_for_features} {data_type} dataset.")
 
                 # Creating dataset from the images
                 image_datasets[data_type] = ImagesDataset(all_inputs, all_labels)
 
             else: # Create the dataset
-                num_features_per_dataset = self.num_features_per_dataset if data_type == 'train' else 64
+                num_features_per_dataset = self.num_features_per_dataset if data_type == 'train' else 300
 
                 all_inputs = []
                 all_labels = []
@@ -231,8 +230,7 @@ class FeatureExtractorVit:
             with open(path_labels, "rb") as f:
                 all_labels = pickle.load(f)
 
-            print(f"Used existing augmented dataset {data_name_for_features} {data_type} dataset."
-                  f" inputs shape: {all_inputs.shape} | labels shape: {all_labels.shape}")
+            print(f"Used existing augmented dataset {data_name_for_features} {data_type} dataset.")
 
         else:
             all_inputs, all_labels = [], []

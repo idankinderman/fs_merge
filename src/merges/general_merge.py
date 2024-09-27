@@ -539,7 +539,6 @@ class GeneralMerge(metaclass=ABCMeta):
         # Parameters for normalizing the features
         if normalize_features:
             normalize_scale = self.params.get('normalize_scale', 0.0)
-            print("Normalizing features with normalize_scale={}".format(normalize_scale))
         else:
             normalize_scale = 0.0  # No normalization
 

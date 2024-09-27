@@ -3,12 +3,6 @@ import torch.multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
 
-import os
-import time
-import math
-
-from utils import set_seed
-
 from modeling import ModuleWrapper
 from train_eval.eval import eval_single_dataset, eval_single_dataset_loss
 from vision_datasets.registry import get_dataset
@@ -23,20 +17,20 @@ class Trainer():
     Base class for Trainer component.
     """
 
-    def __init__(self, args, loss_fn, clip_grad_norm=True, print_per_epoch=2, with_eval=True, eval_type='acc',
+    def __init__(self, args, loss_fn, clip_grad_norm=True, with_eval=True, eval_type='acc',
                  what_is_trained='VIT', models_to_merge=None, loss_type=None, out_dim=None,
-                 with_early_stopping=False, early_stopping_patience=5, epoch_per_eval=1):
+                 with_early_stopping=False, early_stopping_patience=5, epoch_per_eval=1, epoch_per_print=10):
         self.args = args
         self.dataset_name = args.train_dataset
         self.loss_fn = loss_fn
         self.clip_grad_norm = clip_grad_norm # If True, will clip the gradient norm to 1.0
-        self.print_per_epoch = print_per_epoch # How many times to print per epoch
         self.with_eval = with_eval # Perform evaluation during training
         self.eval_type = eval_type # Evaluation type - 'acc' or 'loss'
         self.what_is_trained = what_is_trained # What is trained - 'VIT' or 'merge_layer'
         self.models_to_merge = models_to_merge # List of models the merge layer is merging
         self.loss_type = loss_type
         self.epoch_per_eval = epoch_per_eval
+        self.epoch_per_print = epoch_per_print
         if self.models_to_merge is not None:
             self.num_models = len(self.models_to_merge)
         else:
@@ -289,13 +283,12 @@ class Trainer():
                 flush=True
             )
 
-    def end_of_epoch_prints(self, epoch, metric_dict, epoch_time):
+    def end_of_epoch_prints(self, epoch, metric_dict, train_loss):
         if self.eval_type == 'acc':
             print(
                 f"End of epoch: {epoch} \t"
                 f"Train acc : {metric_dict['train_acc']:.2f}%"
-                f" | Val acc : {metric_dict['val_acc']:.2f}%"
-                f" | Time : {epoch_time:.2f} sec",
+                f" | Val acc : {metric_dict['val_acc']:.2f}%",
                 flush=True
             )
 
@@ -303,16 +296,15 @@ class Trainer():
             print(
                 f"End of epoch: {epoch} \t"
                 f"Train loss : {metric_dict['train_loss']:.4f}"
-                f" | Val loss : {metric_dict['val_loss']:.4f}"
-                f" | Time : {epoch_time:.2f} sec",
+                f" | Val loss : {metric_dict['val_loss']:.4f}",
                 flush=True
             )
 
         elif self.eval_type == 'loss_test':
             print(
                 f"End of epoch: {epoch} \t"
-                f" | Val loss : {metric_dict['val_loss']:.4f}"
-                f" | Time : {epoch_time:.2f} sec",
+                f"Train loss : {train_loss:.4f}"
+                f" | Val loss : {metric_dict['val_loss']:.4f}",
                 flush=True
             )
 
@@ -377,11 +369,11 @@ class Trainer():
             batch_size = dataset.batch_size
 
         num_batches = len(dataset.train_loader)
-        print(f'There are {num_batches} batches in the training set, and {num_batches * batch_size} samples.')
+        print(f'There are {num_batches} batches in the training set.')
 
         #model = self.move_model_to_cuda(model) # Edan: I moved it to before get_scheduler
         model = model.cuda()
-        print("lr: {} | lr_diag: {} | epochs: {}".format(self.args.lr, self.args.lr_diag, epochs))
+        print("lr: {} | epochs: {}".format(self.args.lr, epochs))
         optimizer, params = self.get_optimizer(model=model, lr=self.args.lr, lr_diag=self.args.lr_diag, wd=self.args.wd)
         scheduler = self.get_scheduler(optimizer, num_batches, epochs)
 
@@ -398,44 +390,25 @@ class Trainer():
             model.train()
             self.lr_list.append(optimizer.param_groups[0]['lr'])
             data_loader = get_dataloader(dataset, is_train=True, args=self.args, image_encoder=None)
-            start_epoch_time = time.time()
+            train_loss = 0
 
             for i, batch in enumerate(data_loader):
-                start_batch_time = time.time()
                 step += 1
 
                 optimizer.zero_grad()
                 inner_target_scales = getattr(dataset, "inner_target_scales", None)
                 loss, loss_inner_dict = self.compute_loss(model, batch, inner_target_scales=inner_target_scales)
-
-                #if i == 2:
-                #    after_forward_mem = torch.cuda.memory_allocated()
-
                 loss.backward()
-
-                #if i == 2:
-                #    after_backward_mem = torch.cuda.memory_allocated()
 
                 if self.clip_grad_norm:
                     torch.nn.utils.clip_grad_norm_(params, 1.0)
 
                 optimizer.step()
-                """
-                if i == 2:
-                    after_optimizer_mem = torch.cuda.memory_allocated()
-
-                    print(f"Memory at start: {(start_mem)/ 1024 ** 2} MB,"
-                          f"after forward: {(after_forward_mem-start_mem)/ 1024 ** 2} MB,"
-                          f" after backward: {(after_backward_mem-start_mem)/ 1024 ** 2} MB,"
-                          f" after optimizer: {(after_optimizer_mem-start_mem)/ 1024 ** 2} MB")
-                    raise Exception("Stop")
-                """
-
                 self.perform_scheduler_step(scheduler, step)
-                batch_time = time.time() - start_batch_time
 
                 # Save this step loss
                 self.train_loss.append(loss.item())
+                train_loss += loss.item()
                 if loss_inner_dict is not None:
                     for key in loss_inner_dict:
                         # Add the inner loss to the list
@@ -443,20 +416,15 @@ class Trainer():
                             self.train_inner_loss["train-inner-{}".format(key)] = []
                         self.train_inner_loss["train-inner-{}".format(key)].append(loss_inner_dict[key])
 
-                if self.print_per_epoch > 0 and i % (math.ceil(num_batches / self.print_per_epoch)) == 0:
-                    percent_complete = 100 * i / len(data_loader)
-                    print(
-                        f"Epoch: {epoch} [{percent_complete:.0f}% {i}/{len(dataset.train_loader)}]\t"
-                        f"Loss: {loss.item():.6f} \t LR: {optimizer.param_groups[0]['lr']:.8f}"
-                        f"\tBatch (t) {batch_time:.3f}", flush=True
-                    )
-
+            train_loss /= len(data_loader)
             self.perform_scheduler_step(scheduler, step, end_of_epoch=True)
 
-            epoch_time = time.time() - start_epoch_time
             if self.with_eval and epoch % self.epoch_per_eval == 0:
                 metric_dict = self.perform_eval(model, dataset, step-1, with_all_plots)
-                self.end_of_epoch_prints(epoch, metric_dict, epoch_time)
+                if epoch % self.epoch_per_print == 0:
+                    self.end_of_epoch_prints(epoch, metric_dict, train_loss)
+            elif epoch % self.epoch_per_print == 0:
+                print(f"Epoch: {epoch} \t Train loss: {train_loss:.4f} \t LR: {optimizer.param_groups[0]['lr']:.8f}", flush=True)
 
             if self.with_early_stopping and epoch % 8 == 0:
                 early_stopping = self.perform_early_stopping(model, dataset)

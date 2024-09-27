@@ -80,7 +80,7 @@ class FSMerge(GeneralMerge):
                  MU_init_method: str,
                  MU_type: str,
                  num_features_train: int,
-                 num_features_test: int = 64,
+                 num_features_test: int = 300,
                  num_features_aug_train: int = 0,
                  transformer_type: str = None,
                  pre_trained: str = None,
@@ -101,7 +101,6 @@ class FSMerge(GeneralMerge):
                  normalize_scale: float = 0.0,
                  norm_U_scale: bool = True,
                  distributed: str | None = 'data_parallel',
-                 print_per_epoch: int = 8,
                  learn_tasks_sequentially: bool = False,
                  descriptor: str = None,
                  datasets_to_eval: List[str] | None = None,
@@ -159,7 +158,6 @@ class FSMerge(GeneralMerge):
         self.params['StepLR_step_size'] = StepLR_step_size
         self.params['StepLR_gamma'] = StepLR_gamma
         # General
-        self.params['print_per_epoch'] = print_per_epoch
         self.params['merge_type'] = merge_type
         self.params['norm_U_scale'] = norm_U_scale
         self.params['scale_inner_type'] = scale_inner_type.lower()
@@ -204,10 +202,6 @@ class FSMerge(GeneralMerge):
                                               reg_coeff=self.params['reg_coeff'])
 
         self.create_merge_dir()
-
-        # Here the training plots will be saved
-        self.params['plots_path'] = os.path.join(self.params['path_to_save'], 'plots')
-        Path(self.params['plots_path']).mkdir(parents=True, exist_ok=True)
 
         """
         # Here the merge layers will be saved
@@ -272,11 +266,6 @@ class FSMerge(GeneralMerge):
             dict_loss = self.losses_lists.get('full_val_epoch', None)
             if dict_loss is not None:
                 self.params['last_val_loss'] = dict_loss['full-loss'][-1]
-
-            # Create plots
-            if epochs > 0:
-                self.use_merge_training_plots(layer_name='full', layer_num=None, with_all_plots=True,
-                                              curr_task_sequence_iter=curr_task_sequence_iter)
 
             # Evaluate the model
             if with_eval and (eval_every_seq_iter or curr_task_sequence_iter == task_sequence_iters - 1):
@@ -598,8 +587,8 @@ class FSMerge(GeneralMerge):
         what_is_trained = 'bert_merge_layer' if self.params['model_type'] == 'bert' else 'merge_layer'
         return Trainer(args=self.args_for_MU_training, loss_fn=self.loss_func, epoch_per_eval = 180,
                     clip_grad_norm=self.params['clip_grad_norm'], out_dim=self.params['out_dim'],
-                    print_per_epoch=self.params['print_per_epoch'], with_eval=True, eval_type='loss_test',
-                    loss_type=self.params['loss_type'], with_early_stopping=self.params['with_early_stopping'],
+                    with_eval=True, eval_type='loss_test', loss_type=self.params['loss_type'],
+                    with_early_stopping=self.params['with_early_stopping'],
                     what_is_trained=what_is_trained, models_to_merge=self.params['models_to_merge'],)
 
 
