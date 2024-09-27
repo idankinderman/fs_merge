@@ -61,8 +61,8 @@ python extract.py --extract_type none --model_type ViT-B-16 --path_to_models <PA
 ```
 
 ### 4. Merge
-Here is an example of merging a pair of models using FS-Merge with a low rank of `12`, `100` training images per dataset, and `800` augmented images per dataset. 
-To use FS-Merge seq., set `learn_tasks_sequentially=True`. If you want to calculate the joint accuracy of the merged model, set `with_multi_head_eval=True`. To save the merged model, set `with_save=True`.
+Here is an example of merging a pair of models using FS-Merge with a low rank of `12`, `100` training images per dataset, and `800` augmented images per dataset.
+If you want to calculate the joint accuracy of the merged model, set `with_multi_head_eval=True`. To save the merged model, set `with_save=True`.
 Examples of how to use other merge methods can be found in the [src/main.py](src/main.py) file.
 
 ```python
