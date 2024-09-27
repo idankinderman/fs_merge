@@ -79,7 +79,6 @@ fs_merge = FSMerge(
         models_to_merge=models_to_merge,
         datasets_to_eval=datasets_to_eval,
         num_features_train=100,
-        num_features_test=64,
         num_features_aug_train=100,
         descriptor="Using FS-Merge to merge models",
         epochs=100,
