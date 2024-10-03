@@ -7,7 +7,7 @@
     <a href="https://soudry.github.io/"> Daniel Soudry </a>
 </p>
 
-Official implementation for [Foldable SuperNets: Scalable Merging of Transformers with Different Initializations and Tasks](?).
+Official implementation for [Foldable SuperNets: Scalable Merging of Transformers with Different Initializations and Tasks](https://arxiv.org/abs/2410.01483).
 
 <p align="center">
 <img src="figures/setting_overview.png" alt="scatter" width="90%"/>
@@ -52,7 +52,7 @@ python extract.py --extract_type layers --model_type ViT-B-16 --path_to_models <
 
 ### 3. Extract features
 Use this command to extract and save the features from the models. These features will be used in the merging process.
-To extract inner features required for methods like RegMean, `set extract_type = 'all'`.
+To extract inner features required for methods like RegMean, set `extract_type = 'all'`.
 The parameter `num_features_per_dataset` defines the number of images to be taken from each training dataset.
 The `aug_factor` multiplies this number by applying data augmentations, effectively increasing the number of images used.
 
@@ -61,7 +61,7 @@ python extract.py --extract_type none --model_type ViT-B-16 --path_to_models <PA
 ```
 
 ### 4. Merge
-Here is an example of merging a pair of models using FS-Merge with a low rank of `12`, `100` training images per dataset, and `800` augmented images per dataset.
+Here is an example of merging a pair of models using FS-Merge with a low rank of `12`, `100` training images per dataset, and `100` augmented images per dataset.
 If you want to calculate the joint accuracy of the merged model, set `with_multi_head_eval=True`. To save the merged model, set `with_save=True`.
 Examples of how to use other merge methods can be found in the [src/main.py](src/main.py) file.
 
