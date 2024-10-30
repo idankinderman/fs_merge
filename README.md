@@ -95,8 +95,14 @@ fs_merge.merge(with_eval=True, with_save=False, with_multi_head_eval=True)
 
 ## Citation
 
-If you use FS-Merge or this codebase in your work, please cite: TODO
+If you use FS-Merge or this codebase in your work, please cite:
 ```
+@article{kinderman2024foldable,
+  title={Foldable SuperNets: Scalable Merging of Transformers with Different Initializations and Tasks},
+  author={Kinderman, Edan and Hubara, Itay and Maron, Haggai and Soudry, Daniel},
+  journal={arXiv preprint arXiv:2410.01483},
+  year={2024}
+}
 ```
 
 ## References and credits
