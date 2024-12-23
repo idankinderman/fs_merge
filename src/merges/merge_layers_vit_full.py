@@ -1016,7 +1016,7 @@ class MergeAttentionSubBlockFull(nn.Module):
 
         q = self.M_q(q)  # [seq_length, B, num_models * emb] @ [num_models * emb, emb] = [seq_length, B, new_emb]
         k = self.M_k(k)  # [seq_length, B, num_models * emb] @ [num_models * emb, emb] = [seq_length, B, new_emb]
-        v = self.M_k(v)  # [seq_length, B, num_models * emb] @ [num_models * emb, emb] = [seq_length, B, new_emb]
+        v = self.M_v(v)  # [seq_length, B, num_models * emb] @ [num_models * emb, emb] = [seq_length, B, new_emb]
 
         q = q.reshape(seq_length, B * self.num_heads, self.head_dim).transpose(0, 1)  # [B * num_heads, seq_length, head_dim]
         k = k.reshape(k.shape[0], B * self.num_heads, self.head_dim).transpose(0, 1)  # [B * num_heads, seq_length, head_dim]
